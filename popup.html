@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ReviewBuddy</title>
+    <style>
+      #reviewBuddyContainer {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        width: 300px;
+        background-color: #333;
+        color: white;
+        border: 1px solid #444;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        z-index: 1000;
+        cursor: pointer;
+      }
+      #reviewBuddyHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #reviewBuddyContent {
+        display: none;
+      }
+      #reviewBuddyMinimizeButton {
+        cursor: pointer;
+        background-color: #555;
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: none;
+      }
+      #reviewModelScore {
+        margin-top: 10px;
+      }
+      .skeleton-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .skeleton-stars {
+        position: relative;
+        width: calc(23px * 5); /* Adjust width based on the number of stars */
+        height: 19px; /* Height of the star */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 23.44 19'%3E%3Cpolygon fill='%2380868b' points='10,15.27 16.18,19 14.54,11.97 20,7.24 12.81,6.63 10,0 7.19,6.63 0,7.24 5.46,11.97 3.82,19'/%3E%3C/svg%3E");
+        background-repeat: repeat-x;
+        overflow: hidden;
+        margin-right: 10px; /* Space between stars and rating */
+      }
+
+      .skeleton-rating {
+        position: relative;
+        width: 20px; /* Width of the rating skeleton */
+        height: 19px; /* Height of the rating skeleton */
+        background-color: #80868b; /* Grey color for the skeleton */
+        overflow: hidden;
+        margin-right: 5px;
+      }
+
+      .skeleton-glimmer {
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(255, 255, 255, 0.8) 50%,
+          rgba(255, 255, 255, 0) 100%
+        );
+        animation: glimmer 1.5s infinite;
+      }
+
+      @keyframes glimmer {
+        0% {
+          left: -100%;
+        }
+        50% {
+          left: 100%;
+        }
+        100% {
+          left: 100%;
+        }
+      }
+
+      .stars {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 23.44 19'%3E%3Cpolygon fill='%2380868b' points='10,15.27 16.18,19 14.54,11.97 20,7.24 12.81,6.63 10,0 7.19,6.63 0,7.24 5.46,11.97 3.82,19'/%3E%3C/svg%3E");
+        background-repeat: repeat-x;
+        display: inline-block;
+        overflow: hidden;
+        position: relative;
+        width: calc(23px * 5); /* Adjust width based on the number of stars */
+        height: 19px; /* Height of the star */
+      }
+
+      .stars span {
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 23.44 19'><polygon fill='%23fdd663' points='10,15.27 16.18,19 14.54,11.97 20,7.24 12.81,6.63 10,0 7.19,6.63 0,7.24 5.46,11.97 3.82,19'/></svg>");
+        background-repeat: repeat-x;
+        display: block;
+        height: 19px; /* Height of the star */
+      }
+
+      .info-icon {
+        font-size: 14px; /* Slightly bigger font size */
+        margin-left: 5px;
+        color: #999; /* Slightly grey color for the info icon */
+        cursor: pointer;
+        position: relative;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 1px solid #999; /* Grey circle around the icon */
+        text-align: center;
+        line-height: 18px; /* Center the "i" vertically */
+      }
+
+      .tooltip {
+        visibility: hidden;
+        background-color: #555;
+        color: #fff;
+        text-align: center;
+        padding: 5px;
+        border-radius: 6px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%; /* Position the tooltip above the text */
+        left: 50%;
+        margin-left: -60px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        width: 200px;
+      }
+
+      .tooltip::after {
+        content: "";
+        position: absolute;
+        top: 100%; /* Position the arrow */
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #555 transparent transparent transparent;
+      }
+
+      .info-icon:hover .tooltip {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .whitify {
+        filter: invert(100%) sepia(1%) saturate(0%) hue-rotate(314deg)
+          brightness(109%) contrast(101%);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="reviewBuddyContainer">
+      <div id="reviewBuddyHeader">
+        <h3>
+          ReviewBuddy
+          <img
+            height="30px"
+            width="30px"
+            class="whitify"
+            src="https://www.svgrepo.com/show/528680/stars.svg"
+            alt=".ai"
+          />
+        </h3>
+        <button id="reviewBuddyMinimizeButton">-</button>
+      </div>
+      <div id="reviewBuddyContent">
+        <div id="placeName">Loading...</div>
+        <div id="placeAddress"></div>
+        <div id="reviewModelScore"></div>
+        <div>
+          (Textual Rating)<i
+            class="info-icon"
+            data-tooltip="The rating is inferred using artificial intelligence reading over all of these reviews and giving a review based on the sentiment of the text, not by the stars they gave."
+            >i</i
+          >
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
