@@ -60,6 +60,15 @@
         margin-right: 5px;
       }
 
+      .skeleton-summary {
+        position: relative;
+        width: 250px; /* Width of the summary skeleton */
+        height: 19px; /* Height of the summary skeleton */
+        background-color: #80868b; /* Grey color for the skeleton */
+        overflow: hidden;
+        margin-right: 5px;
+      }
+
       .skeleton-glimmer {
         position: absolute;
         top: 0;
@@ -156,6 +165,22 @@
         filter: invert(100%) sepia(1%) saturate(0%) hue-rotate(314deg)
           brightness(109%) contrast(101%);
       }
+      #placeSummaryContainer {
+        margin-top: 10px;
+      }
+
+      #placeSummary {
+        cursor: pointer;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-height: 20px;
+      }
+
+      #placeSummary.expanded {
+        white-space: normal;
+        max-height: none;
+      }
     </style>
   </head>
   <body>
@@ -183,6 +208,9 @@
             data-tooltip="The rating is inferred using artificial intelligence reading over all of these reviews and giving a review based on the sentiment of the text, not by the stars they gave."
             >i</i
           >
+        </div>
+        <div id="placeSummaryContainer">
+          <div id="placeSummary" class="minimized">...</div>
         </div>
       </div>
     </div>

@@ -3,7 +3,12 @@ let isMinimized = true;
 let currentUrl = window.location.href;
 let currentPlaceName = null;
 let currentPlaceAddress = null;
+const BASE_SCORE_API_URL =
+  "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
+// "http://localhost:8000";
 let isDebugMode = true; // Set this to false to turn off logging
+let reviewModelScoreController = null;
+let placeSummaryController = null;
 
 function log(message) {
   if (isDebugMode) {
@@ -38,15 +43,20 @@ function getPlaceAddress() {
 }
 
 async function fetchReviewModelScore(placeName, placeCity) {
-  const apiUrl =
-    "https://score-google-place-api-bnwzz3dieq-zf.a.run.app/predict_google_place?place_name=" +
-    encodeURIComponent(`${placeName} ${placeCity}`) +
-    "&number_of_reviews=10";
+  if (reviewModelScoreController) {
+    reviewModelScoreController.abort();
+  }
+  reviewModelScoreController = new AbortController();
+  const { signal } = reviewModelScoreController;
+
+  const apiUrl = `${BASE_SCORE_API_URL}/predict_google_place?place_name=${encodeURIComponent(
+    `${placeName} ${placeCity}`
+  )}&number_of_reviews=10`;
 
   showSkeletonLoader();
 
   try {
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, { signal });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -56,7 +66,43 @@ async function fetchReviewModelScore(placeName, placeCity) {
     log(`Received score: ${data.score} - Log ID: 017`);
     displayReviewModelScore(data.score);
   } catch (error) {
-    log(`Failed to fetch review model score - Log ID: 018`, error);
+    if (error.name === "AbortError") {
+      log(`Fetch aborted for review model score - Log ID: 018`);
+    } else {
+      log(`Failed to fetch review model score - Log ID: 018`, error);
+    }
+  }
+}
+
+async function fetchPlaceSummary(placeName, placeCity) {
+  if (placeSummaryController) {
+    placeSummaryController.abort();
+  }
+  placeSummaryController = new AbortController();
+  const { signal } = placeSummaryController;
+
+  const apiUrl = `${BASE_SCORE_API_URL}/summary_for_place?place_name=${encodeURIComponent(
+    `${placeName} ${placeCity}`
+  )}&number_of_reviews=10`;
+
+  showSummarySkeletonLoader();
+
+  try {
+    const response = await fetch(apiUrl, { signal });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    log(`Received summary: ${data.summary} - Log ID: 017`);
+    displayPlaceSummary(data.summary);
+  } catch (error) {
+    if (error.name === "AbortError") {
+      log(`Fetch aborted for place summary - Log ID: 018`);
+    } else {
+      log(`Failed to fetch place summary - Log ID: 018`, error);
+    }
   }
 }
 
@@ -68,6 +114,17 @@ function showSkeletonLoader() {
       <div class="skeleton-glimmer"></div>
     </div>
       <div class="skeleton-stars">
+        <div class="skeleton-glimmer"></div>
+      </div>
+    </div>
+  `;
+}
+
+function showSummarySkeletonLoader() {
+  const placeSummaryContainer = document.getElementById("placeSummary");
+  placeSummaryContainer.innerHTML = `
+    <div class="skeleton-container">
+      <div class="skeleton-summary">
         <div class="skeleton-glimmer"></div>
       </div>
     </div>
@@ -88,6 +145,11 @@ function displayReviewModelScore(score) {
   `;
 
   reviewModelScoreContainer.innerHTML = `<div>${score} ${starHtml}</div>`;
+}
+
+function displayPlaceSummary(summary) {
+  const placeSummaryContainer = document.getElementById("placeSummary");
+  placeSummaryContainer.innerText = summary;
 }
 
 function injectHTML() {
@@ -145,6 +207,13 @@ function initializePopup() {
       "The rating is inferred using artificial intelligence reading over all of these reviews and giving a review based on the sentiment of the text, not by the stars they gave.";
     icon.appendChild(tooltip);
   });
+
+  // Add event listener for summary toggle
+  document.getElementById("placeSummary").addEventListener("click", (event) => {
+    event.stopPropagation(); // Prevent the click event from bubbling up to the parent div
+    const summaryElement = event.target;
+    summaryElement.classList.toggle("expanded");
+  });
 }
 
 function updatePlaceInfo() {
@@ -165,8 +234,9 @@ function updatePlaceInfo() {
     document.getElementById("placeAddress").innerText = placeAddress;
     log(`Address displayed: ${placeAddress} - Log ID: 009`);
     currentPlaceAddress = placeAddress;
-    const placeCity = placeAddress.split(",")[1].trim();
+    const placeCity = placeAddress.split(",")[1]?.trim();
     fetchReviewModelScore(placeName, placeCity);
+    fetchPlaceSummary(placeName, placeCity);
   } else {
     document.getElementById("placeAddress").innerText = "Address not found.";
     log("Failed to display address - Log ID: 010");
@@ -255,6 +325,7 @@ function retryUpdatePlaceInfo(retries = 5) {
       log(
         `New place detected: ${newPlaceName}, ${newPlaceAddress} - Log ID: 030`
       );
+      resetState();
       updatePlaceInfo();
     } else {
       log(`Place info not changed yet, retrying... - Log ID: 031`);
@@ -262,6 +333,19 @@ function retryUpdatePlaceInfo(retries = 5) {
     }
   } else {
     setTimeout(() => retryUpdatePlaceInfo(retries - 1), 1000);
+  }
+}
+
+function resetState() {
+  currentPlaceName = null;
+  currentPlaceAddress = null;
+  showSkeletonLoader();
+  showSummarySkeletonLoader();
+  if (reviewModelScoreController) {
+    reviewModelScoreController.abort();
+  }
+  if (placeSummaryController) {
+    placeSummaryController.abort();
   }
 }
 
