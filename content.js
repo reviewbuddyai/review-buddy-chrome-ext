@@ -4,11 +4,10 @@ let currentUrl = window.location.href;
 let currentPlaceName = null;
 let currentPlaceAddress = null;
 const BASE_SCORE_API_URL =
-  "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
-// "http://localhost:8000";
+  // "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
+  "http://localhost:8000";
 let isDebugMode = true; // Set this to false to turn off logging
 let reviewModelScoreController = null;
-let placeSummaryController = null;
 
 function log(message) {
   if (isDebugMode) {
@@ -42,16 +41,16 @@ function getPlaceAddress() {
   }
 }
 
-async function fetchReviewModelScore(placeName, placeCity) {
+async function fetchReviewData(placeName, placeAddress) {
   if (reviewModelScoreController) {
     reviewModelScoreController.abort();
   }
   reviewModelScoreController = new AbortController();
   const { signal } = reviewModelScoreController;
 
-  const apiUrl = `${BASE_SCORE_API_URL}/predict_google_place?place_name=${encodeURIComponent(
-    `${placeName} ${placeCity}`
-  )}&number_of_reviews=10`;
+  const apiUrl = `${BASE_SCORE_API_URL}/get_review_data?place_name=${encodeURIComponent(
+    placeName
+  )}&place_address=${encodeURIComponent(placeAddress)}&number_of_reviews=100`;
 
   showSkeletonLoader();
 
@@ -63,65 +62,33 @@ async function fetchReviewModelScore(placeName, placeCity) {
     }
 
     const data = await response.json();
-    log(`Received score: ${data.score} - Log ID: 017`);
+    log(
+      `Received data: score=${data.score}, summary=${data.summary} - Log ID: 017`
+    );
     displayReviewModelScore(data.score);
-  } catch (error) {
-    if (error.name === "AbortError") {
-      log(`Fetch aborted for review model score - Log ID: 018`);
-    } else {
-      log(`Failed to fetch review model score - Log ID: 018`, error);
-    }
-  }
-}
-
-async function fetchPlaceSummary(placeName, placeCity) {
-  if (placeSummaryController) {
-    placeSummaryController.abort();
-  }
-  placeSummaryController = new AbortController();
-  const { signal } = placeSummaryController;
-
-  const apiUrl = `${BASE_SCORE_API_URL}/summary_for_place?place_name=${encodeURIComponent(
-    `${placeName} ${placeCity}`
-  )}&number_of_reviews=10`;
-
-  showSummarySkeletonLoader();
-
-  try {
-    const response = await fetch(apiUrl, { signal });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    log(`Received summary: ${data.summary} - Log ID: 017`);
     displayPlaceSummary(data.summary);
   } catch (error) {
     if (error.name === "AbortError") {
-      log(`Fetch aborted for place summary - Log ID: 018`);
+      log(`Fetch aborted for review data - Log ID: 018`);
     } else {
-      log(`Failed to fetch place summary - Log ID: 018`, error);
+      log(`Failed to fetch review data - Log ID: 018`, error);
     }
   }
 }
 
 function showSkeletonLoader() {
   const reviewModelScoreContainer = document.getElementById("reviewModelScore");
+  const placeSummaryContainer = document.getElementById("placeSummary");
   reviewModelScoreContainer.innerHTML = `
     <div class="skeleton-container">
-    <div class="skeleton-rating">
-      <div class="skeleton-glimmer"></div>
-    </div>
+      <div class="skeleton-rating">
+        <div class="skeleton-glimmer"></div>
+      </div>
       <div class="skeleton-stars">
         <div class="skeleton-glimmer"></div>
       </div>
     </div>
   `;
-}
-
-function showSummarySkeletonLoader() {
-  const placeSummaryContainer = document.getElementById("placeSummary");
   placeSummaryContainer.innerHTML = `
     <div class="skeleton-container">
       <div class="skeleton-summary">
@@ -149,7 +116,8 @@ function displayReviewModelScore(score) {
 
 function displayPlaceSummary(summary) {
   const placeSummaryContainer = document.getElementById("placeSummary");
-  placeSummaryContainer.innerText = summary;
+  const htmlContent = marked.parse(summary); // Convert Markdown to HTML
+  placeSummaryContainer.innerHTML = htmlContent;
 }
 
 function injectHTML() {
@@ -209,11 +177,19 @@ function initializePopup() {
   });
 
   // Add event listener for summary toggle
-  document.getElementById("placeSummary").addEventListener("click", (event) => {
-    event.stopPropagation(); // Prevent the click event from bubbling up to the parent div
-    const summaryElement = event.target;
-    summaryElement.classList.toggle("expanded");
-  });
+  document
+    .getElementById("placeSummaryContainer")
+    .addEventListener("click", (event) => {
+      event.stopPropagation(); // Prevent the click event from bubbling up to the parent div
+      const summaryElement = event.target.closest(".summary-button");
+      const arrowElement = document.getElementById("toggleArrow");
+      summaryElement.classList.toggle("expanded");
+      if (summaryElement.classList.contains("expanded")) {
+        arrowElement.style.transform = "rotate(180deg)";
+      } else {
+        arrowElement.style.transform = "rotate(0deg)";
+      }
+    });
 }
 
 function updatePlaceInfo() {
@@ -234,9 +210,7 @@ function updatePlaceInfo() {
     document.getElementById("placeAddress").innerText = placeAddress;
     log(`Address displayed: ${placeAddress} - Log ID: 009`);
     currentPlaceAddress = placeAddress;
-    const placeCity = placeAddress.split(",")[1]?.trim();
-    fetchReviewModelScore(placeName, placeCity);
-    fetchPlaceSummary(placeName, placeCity);
+    fetchReviewData(placeName, placeAddress);
   } else {
     document.getElementById("placeAddress").innerText = "Address not found.";
     log("Failed to display address - Log ID: 010");
@@ -340,12 +314,8 @@ function resetState() {
   currentPlaceName = null;
   currentPlaceAddress = null;
   showSkeletonLoader();
-  showSummarySkeletonLoader();
   if (reviewModelScoreController) {
     reviewModelScoreController.abort();
-  }
-  if (placeSummaryController) {
-    placeSummaryController.abort();
   }
 }
 
