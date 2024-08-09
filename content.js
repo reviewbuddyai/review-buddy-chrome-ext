@@ -120,28 +120,43 @@ function displayBestWorstReviews(bestReview, worstReview) {
   const worstReviewContainer = document.getElementById("worstReview");
 
   bestReviewContainer.innerHTML = `
-    <div>${bestReview.score} ${generateStarHtml(bestReview.score)} "${
-    bestReview.review
-  }"</div>
+    <div class="flex s-e">
+      <div>
+        <span>${bestReview.score}</span> 
+        ${generateStarHtml(bestReview.score)} 
+      </div>
+      <span>"${bestReview.review}"</span>
+    </div>
   `;
 
   worstReviewContainer.innerHTML = `
-    <div>${worstReview.score} ${generateStarHtml(worstReview.score)} "${
-    worstReview.review
-  }"</div>
+    <div class="flex s-e">
+      <div>
+        <span>${worstReview.score}</span> 
+        ${generateStarHtml(worstReview.score)} 
+      </div>
+      <span>"${worstReview.review}"</span>
+    </div>
   `;
 }
 
-function displayLeaderboard(places_leaderboard) {
+function displayLeaderboard(placesLeaderboard) {
   const leaderboardContainer = document.getElementById("leaderboardContainer");
 
-  leaderboardContainer.innerHTML = places_leaderboard.reduce(
-    (acc, place) =>
+  const leaderboardList = placesLeaderboard.reduce(
+    (acc, place, index) =>
       (acc += `
-    <div>${place.score} ${generateStarHtml(place.score)} "${place.name}"</div>
+    <li class="flex s-e">
+      <span>${index + 1}. <b>${place.name}</b></span>
+      <div>
+        ${place.score} ${generateStarHtml(place.score)}
+      </div>
+    </li>
   `),
     ""
   );
+
+  leaderboardContainer.innerHTML = `<ol>${leaderboardList}</ol>`;
 }
 
 function generateStarHtml(score) {

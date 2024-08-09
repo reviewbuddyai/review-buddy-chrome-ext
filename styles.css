@@ -225,3 +225,11 @@
   display: block;
   opacity: 1;
 }
+
+.flex {
+  display: flex;
+}
+
+.s-e {
+  justify-content: space-evenly;
+}
