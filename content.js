@@ -1,11 +1,12 @@
+// content.js
 console.log("Content script loaded - Log ID: 001");
 let isMinimized = true;
 let currentUrl = window.location.href;
 let currentPlaceName = null;
 let currentPlaceAddress = null;
 const BASE_SCORE_API_URL =
-  "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
-// "http://localhost:8000";
+  // "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
+  "http://localhost:8000";
 let isDebugMode = true; // Set this to false to turn off logging
 let reviewModelScoreController = null;
 
@@ -50,7 +51,7 @@ async function fetchReviewData(placeName, placeAddress) {
 
   const apiUrl = `${BASE_SCORE_API_URL}/get_review_data?place_name=${encodeURIComponent(
     `${placeName} ${placeAddress.split(",")[0]}`
-  )}&number_of_reviews=100`;
+  )}&number_of_reviews=10`;
 
   showSkeletonLoader();
 
@@ -67,6 +68,7 @@ async function fetchReviewData(placeName, placeAddress) {
     );
     displayReviewModelScore(data.score);
     displayPlaceSummary(data.summary);
+    displayBestWorstReviews(data.best_review, data.worst_review);
   } catch (error) {
     if (error.name === "AbortError") {
       log(`Fetch aborted for review data - Log ID: 018`);
@@ -100,16 +102,8 @@ function showSkeletonLoader() {
 
 function displayReviewModelScore(score) {
   const reviewModelScoreContainer = document.getElementById("reviewModelScore");
-  const starWidth = 23; // Width of one star
-  const filledWidth = Math.floor(score) * starWidth + (score % 1) * starWidth;
 
-  const starHtml = `
-    <span class="stars" aria-label="Rated ${score} out of 5," role="img">
-      <div aria-hidden="true">
-        <span style="width:calc(${filledWidth}px)"></span>
-      </div>
-    </span>
-  `;
+  const starHtml = generateStarHtml(score);
 
   reviewModelScoreContainer.innerHTML = `<div>${score} ${starHtml}</div>`;
 }
@@ -120,28 +114,68 @@ function displayPlaceSummary(summary) {
   placeSummaryContainer.innerHTML = htmlContent;
 }
 
-function injectHTML() {
-  fetch(chrome.runtime.getURL("popup.html"))
-    .then((response) => response.text())
-    .then((data) => {
-      const container = document.createElement("div");
-      container.innerHTML = data;
-      const parentDiv = document.getElementById("lu_pinned_rhs");
-      if (parentDiv) {
-        parentDiv.appendChild(container);
-        log("HTML injected - Log ID: 011");
-        initializePopup();
-      } else {
-        log("Parent div not found - Log ID: 012");
-      }
-    })
-    .catch((err) => {
-      log("Failed to fetch HTML - Log ID: 013", err);
-    });
+function displayBestWorstReviews(bestReview, worstReview) {
+  const bestReviewContainer = document.getElementById("bestReview");
+  const worstReviewContainer = document.getElementById("worstReview");
+
+  bestReviewContainer.innerHTML = `
+    <div>${bestReview.score} ${generateStarHtml(bestReview.score)} "${
+    bestReview.review
+  }"</div>
+  `;
+
+  worstReviewContainer.innerHTML = `
+    <div>${worstReview.score} ${generateStarHtml(worstReview.score)} "${
+    worstReview.review
+  }"</div>
+  `;
+}
+
+function generateStarHtml(score) {
+  const starWidth = 23; // Width of one star
+  const filledWidth = Math.floor(score) * starWidth + (score % 1) * starWidth;
+
+  return `
+    <span class="stars" aria-label="Rated ${score} out of 5," role="img">
+      <div aria-hidden="true">
+        <span style="width:calc(${filledWidth}px)"></span>
+      </div>
+    </span>
+  `;
+}
+
+async function injectHTML() {
+  try {
+    const [styles, html] = await Promise.all([
+      fetch(chrome.runtime.getURL("styles.css")),
+      fetch(chrome.runtime.getURL("popup.html")),
+    ]);
+    const [stylesText, htmlText] = await Promise.all([
+      styles.text(),
+      html.text(),
+    ]);
+
+    const container = document.createElement("div");
+    container.innerHTML = htmlText;
+    const parentDiv = document.getElementById("lu_pinned_rhs");
+    if (parentDiv) {
+      const styles = document.createElement("style");
+      styles.innerText = stylesText;
+      container.appendChild(styles);
+      parentDiv.appendChild(container);
+      log("HTML injected - Log ID: 011");
+      initializePopup();
+    } else {
+      log("Parent div not found - Log ID: 012");
+    }
+  } catch (err) {
+    log("Failed to fetch HTML - Log ID: 013", err);
+  }
 }
 
 function initializePopup() {
   log("Initializing popup - Log ID: 020");
+
   updatePlaceInfo();
 
   document
@@ -166,7 +200,6 @@ function initializePopup() {
         log("Maximized - Log ID: 016");
       }
     });
-
   // Initialize tooltips
   document.querySelectorAll(".info-icon").forEach((icon) => {
     const tooltip = document.createElement("div");
@@ -190,6 +223,29 @@ function initializePopup() {
         arrowElement.style.transform = "rotate(0deg)";
       }
     });
+
+  // Adding functionality for animated tabs between Overview and Best & Worst reviews
+  const tabButtons = document.querySelectorAll(".tab-button");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  // Function to show the tab content based on the active button
+  function showTab(tab) {
+    tabContents.forEach((content) => {
+      content.classList.remove("active");
+    });
+    document.getElementById(tab).classList.add("active");
+  }
+
+  // Event listeners for each tab button
+  tabButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      // Set active class on the clicked tab
+      tabButtons.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+      // Show the corresponding tab content
+      showTab(button.dataset.tab);
+    });
+  });
 }
 
 function updatePlaceInfo() {

@@ -19,7 +19,12 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["popup.html", "popup.js", "review_model_score.json"],
+      "resources": [
+        "popup.html",
+        "popup.js",
+        "review_model_score.json",
+        "styles.css"
+      ],
       "matches": ["<all_urls>"]
     }
   ],
