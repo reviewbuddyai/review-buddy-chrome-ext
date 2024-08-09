@@ -4,6 +4,7 @@ let isMinimized = true;
 let currentUrl = window.location.href;
 let currentPlaceName = null;
 let currentPlaceAddress = null;
+let leaderboard = [];
 const BASE_SCORE_API_URL =
   // "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
   "http://localhost:8000";
@@ -69,7 +70,10 @@ async function fetchReviewData(placeName, placeAddress) {
     displayReviewModelScore(data.score);
     displayPlaceSummary(data.summary);
     displayBestWorstReviews(data.best_review, data.worst_review);
-    displayLeaderboard([{ score: 4, name: "your mom" }]);
+
+    leaderboard.push(data);
+    leaderboard.sort((a, b) => a.score - b.score);
+    displayLeaderboard(leaderboard);
   } catch (error) {
     if (error.name === "AbortError") {
       log(`Fetch aborted for review data - Log ID: 018`);
@@ -81,7 +85,10 @@ async function fetchReviewData(placeName, placeAddress) {
 
 function showSkeletonLoader() {
   const reviewModelScoreContainer = document.getElementById("reviewModelScore");
-  const placeSummaryContainer = document.getElementById("placeSummary");
+  const placeSummaryContainer = document.getElementById(
+    "placeSummaryContainer"
+  );
+  const placeSummary = document.getElementById("placeSummary");
   reviewModelScoreContainer.innerHTML = `
     <div class="skeleton-container">
       <div class="skeleton-rating">
@@ -92,13 +99,8 @@ function showSkeletonLoader() {
       </div>
     </div>
   `;
-  placeSummaryContainer.innerHTML = `
-    <div class="skeleton-container">
-      <div class="skeleton-summary">
-        <div class="skeleton-glimmer"></div>
-      </div>
-    </div>
-  `;
+  placeSummaryContainer.classList.add("skeleton");
+  placeSummary.innerHTML = "";
 }
 
 function displayReviewModelScore(score) {
@@ -110,9 +112,13 @@ function displayReviewModelScore(score) {
 }
 
 function displayPlaceSummary(summary) {
-  const placeSummaryContainer = document.getElementById("placeSummary");
+  const placeSummaryContainer = document.getElementById(
+    "placeSummaryContainer"
+  );
+  placeSummaryContainer.classList.remove("skeleton");
+  const placeSummary = document.getElementById("placeSummary");
   const htmlContent = marked.parse(summary); // Convert Markdown to HTML
-  placeSummaryContainer.innerHTML = htmlContent;
+  placeSummary.innerHTML = htmlContent;
 }
 
 function displayBestWorstReviews(bestReview, worstReview) {
@@ -147,8 +153,8 @@ function displayLeaderboard(placesLeaderboard) {
     (acc, place, index) =>
       (acc += `
     <li class="flex s-e a-i-c">
-      <span>${index + 1}. <b>${place.name}</b></span>
-      <div>
+      <span>${index + 1}. <b>${place.place_name}</b></span>
+      <div t-n-w>
         ${place.score} ${generateStarHtml(place.score)}
       </div>
     </li>
