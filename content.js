@@ -69,6 +69,7 @@ async function fetchReviewData(placeName, placeAddress) {
     displayReviewModelScore(data.score);
     displayPlaceSummary(data.summary);
     displayBestWorstReviews(data.best_review, data.worst_review);
+    displayLeaderboard([{ score: 4, name: "your mom" }]);
   } catch (error) {
     if (error.name === "AbortError") {
       log(`Fetch aborted for review data - Log ID: 018`);
@@ -129,6 +130,18 @@ function displayBestWorstReviews(bestReview, worstReview) {
     worstReview.review
   }"</div>
   `;
+}
+
+function displayLeaderboard(places_leaderboard) {
+  const leaderboardContainer = document.getElementById("leaderboardContainer");
+
+  leaderboardContainer.innerHTML = places_leaderboard.reduce(
+    (acc, place) =>
+      (acc += `
+    <div>${place.score} ${generateStarHtml(place.score)} "${place.name}"</div>
+  `),
+    ""
+  );
 }
 
 function generateStarHtml(score) {
