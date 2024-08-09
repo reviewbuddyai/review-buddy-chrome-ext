@@ -49,7 +49,7 @@ async function fetchReviewData(placeName, placeAddress) {
   const { signal } = reviewModelScoreController;
 
   const apiUrl = `${BASE_SCORE_API_URL}/get_review_data?place_name=${encodeURIComponent(
-    `${placeName} ${placeAddress}`
+    `${placeName} ${placeAddress.split(",")[0]}`
   )}&number_of_reviews=100`;
 
   showSkeletonLoader();
