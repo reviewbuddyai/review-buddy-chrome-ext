@@ -12,7 +12,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.google.com/*", "https://www.google.nl/*"],
+      "matches": [
+        "https://www.google.com/*",
+        "https://www.google.nl/*",
+        "https://www.google.co.il/*"
+      ],
       "js": ["libs/marked.min.js", "content.js"],
       "run_at": "document_end"
     }
