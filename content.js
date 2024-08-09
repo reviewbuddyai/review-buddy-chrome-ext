@@ -120,7 +120,7 @@ function displayBestWorstReviews(bestReview, worstReview) {
   const worstReviewContainer = document.getElementById("worstReview");
 
   bestReviewContainer.innerHTML = `
-    <div class="flex s-e">
+    <div class="flex s-e a-i-c">
       <div>
         <span>${bestReview.score}</span> 
         ${generateStarHtml(bestReview.score)} 
@@ -130,7 +130,7 @@ function displayBestWorstReviews(bestReview, worstReview) {
   `;
 
   worstReviewContainer.innerHTML = `
-    <div class="flex s-e">
+    <div class="flex s-e a-i-c">
       <div>
         <span>${worstReview.score}</span> 
         ${generateStarHtml(worstReview.score)} 
@@ -146,7 +146,7 @@ function displayLeaderboard(placesLeaderboard) {
   const leaderboardList = placesLeaderboard.reduce(
     (acc, place, index) =>
       (acc += `
-    <li class="flex s-e">
+    <li class="flex s-e a-i-c">
       <span>${index + 1}. <b>${place.name}</b></span>
       <div>
         ${place.score} ${generateStarHtml(place.score)}
