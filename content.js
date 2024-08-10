@@ -91,9 +91,8 @@ function showSkeletonLoader() {
   const placeSummary = document.getElementById("placeSummary");
   reviewModelScoreContainer.innerHTML = `
     <div class="skeleton-container">
-      <div class="skeleton-rating">
-        <div class="skeleton-glimmer"></div>
-      </div>
+      <div class="loader"></div>
+
       <div class="skeleton-stars">
         <div class="skeleton-glimmer"></div>
       </div>
@@ -154,7 +153,7 @@ function displayLeaderboard(placesLeaderboard) {
       (acc += `
     <li class="flex s-e a-i-c">
       <span>${index + 1}. <b>${place.place_name}</b></span>
-      <div t-n-w>
+      <div class="t-n-w">
         ${place.score} ${generateStarHtml(place.score)}
       </div>
     </li>
