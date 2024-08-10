@@ -77,8 +77,13 @@
   0% {
     background-position: -200px 0;
   }
-
-  to {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+  100% {
     background-position: calc(200px + 100%) 0;
   }
 }
@@ -94,10 +99,9 @@
   background-size: 400% 100%;
   background-repeat: no-repeat;
   border-radius: 8px;
-  animation: skeleton 1.5s infinite linear;
+  animation: skeleton 2s infinite linear;
   display: inline-block;
   line-height: 1;
-  animation-duration: 1.2s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   animation-direction: alternate;
@@ -118,12 +122,15 @@
   );
   animation-timing-function: ease-in-out;
   animation-direction: alternate;
-  animation: glimmer 3s infinite;
+  animation: glimmer 4s infinite;
 }
 
 @keyframes glimmer {
   0% {
     left: -100%;
+  }
+  50% {
+    left: 100%;
   }
   50% {
     left: 100%;
@@ -314,11 +321,15 @@
   );
 }
 .loader:after {
-  animation: l5 1s infinite;
+  animation: l5 2s infinite;
   transform: perspective(300px) translateZ(0px);
 }
 @keyframes l5 {
-  to {
+  0% {
+    transform: perspective(300px) translateZ(0);
+    opacity: 1;
+  }
+  100% {
     transform: perspective(300px) translateZ(150px);
     opacity: 0;
   }
