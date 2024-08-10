@@ -72,7 +72,7 @@ async function fetchReviewData(placeName, placeAddress) {
     displayBestWorstReviews(data.best_review, data.worst_review);
 
     leaderboard.push(data);
-    leaderboard.sort((a, b) => a.score - b.score);
+    leaderboard.sort((a, b) => b.score - a.score);
     displayLeaderboard(leaderboard);
   } catch (error) {
     if (error.name === "AbortError") {
