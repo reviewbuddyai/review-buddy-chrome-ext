@@ -331,6 +331,7 @@ function waitForElements() {
   observer.observe(document, {
     childList: true,
     subtree: true,
+    characterData: true,
   });
 }
 
@@ -348,12 +349,20 @@ function observePlaceChanges() {
   });
 
   if (titleElement) {
-    observer.observe(titleElement, { childList: true, subtree: true });
+    observer.observe(titleElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
     log("Observing title element - Log ID: 024");
   }
 
   if (addressElement) {
-    observer.observe(addressElement, { childList: true, subtree: true });
+    observer.observe(addressElement.children[1], {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
     log("Observing address element - Log ID: 025");
   }
 }
