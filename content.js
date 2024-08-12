@@ -339,6 +339,7 @@ function observePlaceChanges() {
   log("Observing place changes - Log ID: 023");
   const titleElement = getTitleElement();
   const addressElement = getAddressElement();
+  const placeElement = document.querySelector('div[data-async-type="lcl_akp"]');
 
   const observer = new MutationObserver((mutations) => {
     log("Place information changed - Log ID: 019");
@@ -347,6 +348,14 @@ function observePlaceChanges() {
     });
     updatePlaceInfo();
   });
+
+  if (placeElement) {
+    observer.observe(placeElement, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+  }
 
   if (titleElement) {
     observer.observe(titleElement, {
