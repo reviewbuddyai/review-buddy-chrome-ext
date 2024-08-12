@@ -2,6 +2,7 @@
 console.log("Content script loaded - Log ID: 001");
 let isMinimized = true;
 let currentUrl = window.location.href;
+let isGoogleMaps = currentUrl.includes("/maps/");
 let currentPlaceName = null;
 let currentPlaceAddress = null;
 let leaderboard = [];
@@ -18,7 +19,9 @@ function log(message) {
 }
 
 function getPlaceName() {
-  const titleElement = document.querySelector('[data-attrid="title"]');
+  const titleElement = isGoogleMaps
+    ? document.querySelector("h1.DUwDvf.lfPIob")
+    : document.querySelector('[data-attrid="title"]');
   if (titleElement) {
     const placeName = titleElement.innerText;
     log(`Place name found: ${placeName} - Log ID: 002`);
@@ -30,9 +33,7 @@ function getPlaceName() {
 }
 
 function getPlaceAddress() {
-  const addressElement = document.querySelector(
-    '[data-local-attribute="d3adr"]'
-  );
+  const addressElement = getAddressElement();
   if (addressElement && addressElement.children.length > 1) {
     const address = addressElement.children[1].innerText;
     log(`Address found: ${address} - Log ID: 007`);
@@ -41,6 +42,12 @@ function getPlaceAddress() {
     log("Address not found or insufficient children - Log ID: 008");
     return null;
   }
+}
+
+function getAddressElement() {
+  return isGoogleMaps
+    ? document.querySelector('button[data-item-id="address"]')?.children[0]
+    : document.querySelector('[data-local-attribute="d3adr"]');
 }
 
 async function fetchReviewData(placeName, placeAddress) {
@@ -52,7 +59,7 @@ async function fetchReviewData(placeName, placeAddress) {
 
   const apiUrl = `${BASE_SCORE_API_URL}/get_review_data?place_name=${encodeURIComponent(
     `${placeName} ${placeAddress.split(",")[0]}`
-  )}&number_of_reviews=10`;
+  )}&number_of_reviews=50`;
 
   showSkeletonLoader();
 
@@ -190,7 +197,9 @@ async function injectHTML() {
 
     const container = document.createElement("div");
     container.innerHTML = htmlText;
-    const parentDiv = document.getElementById("lu_pinned_rhs");
+    const parentDiv = isGoogleMaps
+      ? document.getElementById("QA0Szd")?.children[0]?.children[0]?.children[0]
+      : document.getElementById("lu_pinned_rhs");
     if (parentDiv) {
       const styles = document.createElement("style");
       styles.innerText = stylesText;
@@ -309,10 +318,8 @@ function updatePlaceInfo() {
 function waitForElements() {
   log("Waiting for elements - Log ID: 022");
   const observer = new MutationObserver((mutations, obs) => {
-    const titleElement = document.querySelector('[data-attrid="title"]');
-    const addressElement = document.querySelector(
-      '[data-local-attribute="d3adr"]'
-    );
+    const titleElement = getTitleElement();
+    const addressElement = getAddressElement();
     if (titleElement && addressElement && addressElement.children.length > 1) {
       log("Required elements found - Log ID: 014");
       injectHTML();
@@ -329,10 +336,8 @@ function waitForElements() {
 
 function observePlaceChanges() {
   log("Observing place changes - Log ID: 023");
-  const titleElement = document.querySelector('[data-attrid="title"]');
-  const addressElement = document.querySelector(
-    '[data-local-attribute="d3adr"]'
-  );
+  const titleElement = getTitleElement();
+  const addressElement = getAddressElement();
 
   const observer = new MutationObserver((mutations) => {
     log("Place information changed - Log ID: 019");
@@ -372,10 +377,8 @@ function retryUpdatePlaceInfo(retries = 5) {
     return;
   }
 
-  const titleElement = document.querySelector('[data-attrid="title"]');
-  const addressElement = document.querySelector(
-    '[data-local-attribute="d3adr"]'
-  );
+  const titleElement = getTitleElement();
+  const addressElement = getAddressElement();
 
   if (titleElement && addressElement && addressElement.children.length > 1) {
     const newPlaceName = titleElement.innerText;
@@ -397,6 +400,12 @@ function retryUpdatePlaceInfo(retries = 5) {
   } else {
     setTimeout(() => retryUpdatePlaceInfo(retries - 1), 1000);
   }
+}
+
+function getTitleElement() {
+  return isGoogleMaps
+    ? document.querySelector("h1.DUwDvf.lfPIob")
+    : document.querySelector('[data-attrid="title"]');
 }
 
 function resetState() {
