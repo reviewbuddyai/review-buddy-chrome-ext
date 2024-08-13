@@ -95,6 +95,8 @@ function showSkeletonLoader() {
   const placeSummaryContainer = document.getElementById(
     "placeSummaryContainer"
   );
+  const bestReviewContainer = document.getElementById("bestReview");
+  const worstReviewContainer = document.getElementById("worstReview");
   const placeSummary = document.getElementById("placeSummary");
   reviewModelScoreContainer.innerHTML = `
     <div class="skeleton-container">
@@ -105,8 +107,27 @@ function showSkeletonLoader() {
       </div>
     </div>
   `;
+
+  bestReviewContainer.innerHTML = `
+  <div class="best-worst-load skeleton"></div>
+  `;
+  worstReviewContainer.innerHTML = `
+  <div class="best-worst-load skeleton"></div>
+  `;
+
   placeSummaryContainer.classList.add("skeleton");
   placeSummary.innerHTML = "";
+}
+
+function createTruncatedReview(review) {
+  const truncatedText =
+    review.length > 50 ? review.substring(0, 50) + "..." : review;
+  const fullText = review;
+  const showMoreLink = '<a href="#" class="toggle-review">Show more</a>';
+
+  return `<div class="review-text" data-full-text="${fullText}" data-truncated-text="${truncatedText}">
+              "${truncatedText}" ${showMoreLink}
+          </div>`;
 }
 
 function displayReviewModelScore(score) {
@@ -132,24 +153,56 @@ function displayBestWorstReviews(bestReview, worstReview) {
   const worstReviewContainer = document.getElementById("worstReview");
 
   bestReviewContainer.innerHTML = `
-    <div class="flex s-e a-i-c">
+    <div>
       <div>
         <span>${bestReview.score}</span> 
         ${generateStarHtml(bestReview.score)} 
       </div>
-      <span>"${bestReview.review}"</span>
+      ${createTruncatedReview(bestReview.review)}
     </div>
   `;
 
   worstReviewContainer.innerHTML = `
-    <div class="flex s-e a-i-c">
+    <div>
       <div>
         <span>${worstReview.score}</span> 
         ${generateStarHtml(worstReview.score)} 
       </div>
-      <span>"${worstReview.review}"</span>
+      ${createTruncatedReview(worstReview.review)}
     </div>
   `;
+
+  addShowMoreShowLessListeners();
+}
+
+function addShowMoreShowLessListeners() {
+  // Add event listeners for "show more" and "show less" links
+  document.querySelectorAll(".toggle-review").forEach((link) => {
+    link.addEventListener("click", toggleShowMoreShowLess);
+  });
+}
+
+function toggleShowMoreShowLess(e) {
+  e.preventDefault();
+  const reviewTextElement = this.parentElement;
+  const isExpanded = this.textContent === "Show less";
+
+  if (isExpanded) {
+    reviewTextElement.innerHTML =
+      `"${reviewTextElement.getAttribute("data-truncated-text")}"` +
+      ' <a href="#" class="toggle-review">Show more</a>';
+  } else {
+    reviewTextElement.textContent = `"${reviewTextElement.getAttribute(
+      "data-full-text"
+    )}"`;
+    reviewTextElement.innerHTML +=
+      ' <a href="#" class="toggle-review">Show less</a>';
+  }
+
+  // Re-add the event listener to the new link
+  reviewTextElement
+    .querySelector(".toggle-review")
+    .addEventListener("click", toggleShowMoreShowLess);
 }
 
 function displayLeaderboard(placesLeaderboard) {
@@ -173,7 +226,10 @@ function displayLeaderboard(placesLeaderboard) {
 
 function generateStarHtml(score) {
   const starWidth = 23; // Width of one star
-  const filledWidth = Math.floor(score) * starWidth + (score % 1) * starWidth;
+  const filledWidth = Math.max(
+    starWidth,
+    Math.floor(score) * starWidth + (score % 1) * starWidth
+  );
 
   return `
     <span class="stars" aria-label="Rated ${score} out of 5," role="img">
