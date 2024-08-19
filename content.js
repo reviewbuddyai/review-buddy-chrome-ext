@@ -78,8 +78,10 @@ async function fetchReviewData(placeName, placeAddress) {
     displayPlaceSummary(data.summary);
     displayBestWorstReviews(data.best_review, data.worst_review);
 
-    leaderboard.push(data);
-    leaderboard.sort((a, b) => b.score - a.score);
+    if (leaderboard.find((x) => x.place_id == data.place_id) == null) {
+      leaderboard.push(data);
+      leaderboard.sort((a, b) => b.score - a.score);
+    }
     displayLeaderboard(leaderboard);
   } catch (error) {
     if (error.name === "AbortError") {
