@@ -59,7 +59,7 @@ async function fetchReviewData(placeName, placeAddress) {
 
   const apiUrl = `${BASE_SCORE_API_URL}/get_review_data?place_name=${encodeURIComponent(
     `${placeName} ${placeAddress.split(",")[0]}`
-  )}&address=${placeAddress}&number_of_reviews=50`;
+  )}&address=${placeAddress}&number_of_reviews=100`;
 
   showSkeletonLoader();
 
