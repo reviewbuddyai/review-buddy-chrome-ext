@@ -5,7 +5,7 @@ let currentUrl = window.location.href;
 let isGoogleMaps = currentUrl.includes("/maps/");
 let currentPlaceName = null;
 let currentPlaceAddress = null;
-let leaderboard = [];
+let history = [];
 const BASE_SCORE_API_URL =
   // "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
   "http://localhost:8000";
@@ -78,11 +78,11 @@ async function fetchReviewData(placeName, placeAddress) {
     displayPlaceSummary(data.summary);
     displayBestWorstReviews(data.best_review, data.worst_review);
 
-    if (leaderboard.find((x) => x.place_id == data.place_id) == null) {
-      leaderboard.push(data);
-      leaderboard.sort((a, b) => b.score - a.score);
+    if (history.find((x) => x.place_id == data.place_id) == null) {
+      history.push(data);
+      history.sort((a, b) => b.score - a.score);
     }
-    displayLeaderboard(leaderboard);
+    displayHistory(history);
   } catch (error) {
     if (error.name === "AbortError") {
       log(`Fetch aborted for review data - Log ID: 018`);
@@ -207,10 +207,10 @@ function toggleShowMoreShowLess(e) {
     .addEventListener("click", toggleShowMoreShowLess);
 }
 
-function displayLeaderboard(placesLeaderboard) {
-  const leaderboardContainer = document.getElementById("leaderboardContainer");
+function displayHistory(placesHistory) {
+  const historyContainer = document.getElementById("historyContainer");
 
-  const leaderboardList = placesLeaderboard.reduce(
+  const historyList = placesHistory.reduce(
     (acc, place, index) =>
       (acc += `
     <li class="flex s-e a-i-c">
@@ -223,7 +223,7 @@ function displayLeaderboard(placesLeaderboard) {
     ""
   );
 
-  leaderboardContainer.innerHTML = `<ol>${leaderboardList}</ol>`;
+  historyContainer.innerHTML = `<ol>${historyList}</ol>`;
 }
 
 function generateStarHtml(score) {
