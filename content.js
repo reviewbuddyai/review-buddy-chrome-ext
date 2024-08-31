@@ -7,8 +7,8 @@ let currentPlaceName = null;
 let currentPlaceAddress = null;
 let history = [];
 const BASE_SCORE_API_URL =
-  // "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
-  "http://localhost:8000";
+  "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
+// "http://localhost:8000";
 let isDebugMode = true; // Set this to false to turn off logging
 let reviewModelScoreController = null;
 
