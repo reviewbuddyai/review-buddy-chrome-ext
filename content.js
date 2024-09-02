@@ -352,6 +352,8 @@ function updatePlaceInfo() {
   log("Updating place info - Log ID: 021");
   const placeName = getPlaceName();
   const placeAddress = getPlaceAddress();
+  let savePlaceName = currentPlaceAddress;
+  let savePlaceAddress = currentPlaceAddress;
 
   if (placeName) {
     document.getElementById("placeName").innerText = placeName;
@@ -366,7 +368,9 @@ function updatePlaceInfo() {
     document.getElementById("placeAddress").innerText = placeAddress;
     log(`Address displayed: ${placeAddress} - Log ID: 009`);
     currentPlaceAddress = placeAddress;
-    fetchReviewData(placeName, placeAddress);
+    if (placeName != savePlaceName && placeAddress != savePlaceAddress) {
+      fetchReviewData(placeName, placeAddress);
+    }
   } else {
     document.getElementById("placeAddress").innerText = "Address not found.";
     log("Failed to display address - Log ID: 010");
@@ -446,7 +450,7 @@ function detectUrlChange() {
   }, 1000);
 }
 
-function retryUpdatePlaceInfo(retries = 5) {
+function retryUpdatePlaceInfo(retries = 1) {
   log(`Retrying update place info, attempts left: ${retries} - Log ID: 028`);
   if (retries <= 0) {
     log("Max retries reached, stopping retry - Log ID: 029");
