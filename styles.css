@@ -326,3 +326,12 @@
   max-height: 300px; /* Adjust this value as needed */
   overflow-y: auto;
 }
+
+.flat {
+  cursor: pointer;
+  background-color: #555;
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+}

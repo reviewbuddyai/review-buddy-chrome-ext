@@ -5,7 +5,9 @@ let currentUrl = window.location.href;
 let isGoogleMaps = currentUrl.includes("/maps/");
 let currentPlaceName = null;
 let currentPlaceAddress = null;
-let history = [];
+let history = sessionStorage.getItem("history")
+  ? JSON.parse(sessionStorage.getItem("history"))
+  : [];
 const BASE_SCORE_API_URL =
   "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
 // "http://localhost:8000";
@@ -61,16 +63,17 @@ async function fetchReviewData(placeName, placeAddress) {
     `${placeName} ${placeAddress.split(",")[0]}`
   )}&address=${placeAddress}&number_of_reviews=100`;
 
-  showSkeletonLoader();
-
   try {
-    const response = await fetch(apiUrl, { signal });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let data = history.find((x) => x.place_name === placeName);
+    if (data == null) {
+      showSkeletonLoader();
+      const response = await fetch(apiUrl, { signal });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      data = await response.json();
     }
 
-    const data = await response.json();
     log(
       `Received data: score=${data.score}, summary=${data.summary} - Log ID: 017`
     );
@@ -81,6 +84,7 @@ async function fetchReviewData(placeName, placeAddress) {
     if (history.find((x) => x.place_id == data.place_id) == null) {
       history.push(data);
       history.sort((a, b) => b.score - a.score);
+      sessionStorage.setItem("history", JSON.stringify(history));
     }
     displayHistory(history);
   } catch (error) {
@@ -209,6 +213,7 @@ function toggleShowMoreShowLess(e) {
 
 function displayHistory(placesHistory) {
   const historyContainer = document.getElementById("historyContainer");
+  const clearHistory = document.getElementById("clearHistory");
 
   const historyList = placesHistory.reduce(
     (acc, place, index) =>
@@ -224,6 +229,12 @@ function displayHistory(placesHistory) {
   );
 
   historyContainer.innerHTML = `<ol>${historyList}</ol>`;
+  clearHistory.addEventListener("click", (event) => {
+    // event.stopPropagation(); // Prevent the click event from bubbling up to the parent div
+    history = [];
+    sessionStorage.setItem("history", JSON.stringify(history));
+    displayHistory(history);
+  });
 }
 
 function generateStarHtml(score) {
