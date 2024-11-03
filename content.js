@@ -9,7 +9,7 @@ let history = sessionStorage.getItem("history")
   ? JSON.parse(sessionStorage.getItem("history"))
   : [];
 const BASE_SCORE_API_URL =
-  "https://score-google-place-api-bnwzz3dieq-zf.a.run.app";
+  "https://score-google-place-api-1073711050206.me-west1.run.app/";
 // "http://localhost:8000";
 let isDebugMode = true; // Set this to false to turn off logging
 let reviewModelScoreController = null;
